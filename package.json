@@ -1,0 +1,29 @@
+{
+  "name": "ts_crawler",
+  "version": "1.0.0",
+  "description": "Simplified data acquisition",
+  "main": "index.js",
+  "scripts": {
+    "build":"tsc",
+    "test": "ts-node ./test/newsSpider/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asdqq125/ts_crawler.git"
+  },
+  "keywords": [
+    "crawler_cc"
+  ],
+  "author": "cyss",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "superagent": "^6.1.0",
+    "ts-node": "^10.4.0",
+    "tslog": "^3.2.2",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/superagent": "^4.1.13"
+  }
+}
