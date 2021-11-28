@@ -1,11 +1,12 @@
 {
-  "name": "ts_crawler",
-  "version": "1.0.0",
+  "name": "cyc_spider",
+  "version": "1.0.3",
   "description": "Simplified data acquisition",
-  "main": "index.js",
+  "main": "dist/index.js",
+"types": "dist/index.d.ts",
   "scripts": {
     "build":"tsc",
-    "test": "ts-node ./test/newsSpider/main.ts"
+    "test": "ts-node ./test/index.ts"
   },
   "repository": {
     "type": "git",

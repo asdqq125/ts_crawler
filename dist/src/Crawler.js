@@ -31,7 +31,7 @@ class Crawler {
      */
     constructor(url) {
         this.logger = new tslog_1.Logger({
-            dateTimeTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            dateTimeTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         });
         this.logger.info(`初始化爬虫`);
         this.crawler = {
@@ -64,7 +64,11 @@ class Crawler {
     }
     /**
      *设置url调度器
-     *
+     *必须实现接口BaseUrlScheduler里方法
+     *enqueue:(...url: string[])=>void;
+     *size:()=> number;
+     *dequeue:()=> any;
+     *isEmpty:()=> boolean;
      * @param {BaseUrlScheduler} scheduler
      * @memberof Crawler
      */
@@ -74,7 +78,9 @@ class Crawler {
     }
     /**
      *设置内容分析器
-     *
+     *必须实现接口BaseAnalyzer里方法
+     *Ts:getCourseInfo:(html: string, crawler: Crawlers)=> void;
+     *Js:getCourseInfo:(html,crawler)=> void;
      * @param {BaseAnalyzer} analyzer
      * @memberof Crawler
      */
@@ -84,7 +90,9 @@ class Crawler {
     }
     /**
      *设置下载器
-     *
+     *必须实现接口BasePersistence里方法
+     *Ts:dataOpi:(hashStorage: HashMap<Object>,crawler: Crawlers)=> void;
+     *Js:dataOpi:(hashStorage,crawler)=> void;
      * @param {BasePersistence} persistence
      * @memberof Crawler
      */
@@ -157,18 +165,19 @@ class Crawler {
      * @memberof Crawler
      */
     _Events() {
-        this.crawlerEvent.on('startActivity', async (data) => {
+        this.crawlerEvent.on("startActivity", async (data) => {
             this.logger.info(`工作开始，总任务数：${this.crawler.additionNumber}`);
             await this._getRawHtmlTextV2();
         });
-        this.crawlerEvent.on('finishActivity', async (data) => {
+        this.crawlerEvent.on("finishActivity", async (data) => {
             this.logger.info(`完成任务：${this.crawler.finishWork},失败任务：${this.crawler.errorWork},当前爬虫状态：${this.crawler.status}`);
             this._crawlerInit();
         });
         this.crawlerEvent.on("getData", (data) => {
             try {
                 this._analysis(data, this.crawler);
-                this.crawlerEvent.emit("analysis", this.crawler.hashStorage);
+                if (!this.crawler.hashStorage.isEmpty())
+                    this.crawlerEvent.emit("analysis", this.crawler.hashStorage);
             }
             catch (e) {
                 this.crawlerEvent.emit("error", e);
@@ -194,7 +203,7 @@ class Crawler {
             for (let i = 0; i < mun; i++) {
                 this.works.push(superagent_1.default.get(this.urlScheduler.dequeue()));
             }
-            this.crawlerEvent.emit('startActivity');
+            this.crawlerEvent.emit("startActivity");
         }
     }
     _setErrorAttion(data) {
@@ -213,6 +222,7 @@ class Crawler {
                     if (data.status === 200) {
                         this.crawler.finishWork++;
                         this.logger.info(`完成第${this.crawler.finishWork}个网页爬取`);
+                        this.crawler.url = this.works[item].url;
                         this.crawlerEvent.emit("getData", data.text);
                     }
                     else {
@@ -228,8 +238,9 @@ class Crawler {
             this.works = [];
             this.works = this._setErrorAttion(worrk);
         }
-        this.crawler.status = CrawkerStatus.STATUS_SUCC;
-        this.crawlerEvent.emit('finishActivity');
+        if (this.crawler.status != CrawkerStatus.STATUS_FAIL)
+            this.crawler.status = CrawkerStatus.STATUS_SUCC;
+        this.crawlerEvent.emit("finishActivity");
     }
     /**
      *解析执行
