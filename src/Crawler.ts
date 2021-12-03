@@ -12,6 +12,7 @@ import {
   HObject,
 } from "./type";
 import events from "events";
+import { userAgents } from "./Constant";
 
 enum CrawkerStatus {
   STATUS_INIT = 0,
@@ -217,24 +218,57 @@ export class Crawler {
     });
   }
 
+  /**
+   *设置请求数组
+   *
+   * @private
+   * @memberof Crawler
+   */
   private setAttion() {
     if (!this.urlScheduler.isEmpty()) {
       let mun = this.urlScheduler.size();
       for (let i = 0; i < mun; i++) {
-        this.works.push(superagent.get(this.urlScheduler.dequeue()));
+        let userAgent =
+          userAgents[Math.ceil(Math.random() * userAgents.length)];
+        this.works.push(
+          superagent
+            .get(this.urlScheduler.dequeue())
+            .set({ "User-Agent": userAgent })
+            .timeout({ response: 5000, deadline: 60000 })
+        );
       }
       this.crawlerEvent.emit("startActivity");
     }
   }
 
+  /**
+   *设置请求失败数组
+   *
+   * @private
+   * @param {any[]} data
+   * @returns {*}
+   * @memberof Crawler
+   */
   private _setErrorAttion(data: any[]) {
     let worklist: any[] = [];
     for (let item in data) {
-      worklist.push(superagent.get(data[item]));
+      let userAgent = userAgents[Math.ceil(Math.random() * userAgents.length)];
+      worklist.push(
+        superagent
+          .get(data[item])
+          .set({ "User-Agent": userAgent })
+          .timeout({ response: 3000, deadline: 60000 })
+      );
     }
     return worklist;
   }
 
+  /**
+   *执行工作
+   *
+   * @private
+   * @memberof Crawler
+   */
   private async _getRawHtmlTextV2() {
     while (this.works.length > 0) {
       let worrk = [];
@@ -244,7 +278,7 @@ export class Crawler {
           if (data.status === 200) {
             this.crawler.finishWork++;
             this.logger.info(`完成第${this.crawler.finishWork}个网页爬取`);
-            this.crawler.url = this.works[item].url
+            this.crawler.url = this.works[item].url;
             this.crawlerEvent.emit("getData", data.text);
           } else {
             let str = `地址：${this.works[item].url}：请求失败,请求状态码：${this.works[item].status}`;

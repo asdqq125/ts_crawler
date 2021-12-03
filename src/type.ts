@@ -15,6 +15,7 @@ export interface Crawlers {
 export interface HObject {
   [x: string]: any;
 }
+
 /**
  *分析器实现接口必须实现
  *
@@ -40,7 +41,6 @@ export interface BasePersistence {
    */
   dataOpi:(hashStorage: HashMap<Object>,crawler: Crawlers)=> void;
 }
-
 
 /**
  *url调度器实现接口，默认使用基础调度器
